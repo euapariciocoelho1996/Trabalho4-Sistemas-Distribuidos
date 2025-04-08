@@ -38,7 +38,7 @@ public class ClienteGUI {
 
     public static String enviarTexto(String texto) throws IOException {
         // ⛔ Altere o IP abaixo para o IP do Notebook 2 onde está o mestre
-        URL url = new URL("http://192.168.0.100:8080/processar");
+        URL url = new URL("http://192.168.1.13:8080/processar");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setDoOutput(true);

@@ -9,15 +9,18 @@ public class MestreServer {
         server.createContext("/processar", new MestreHandler());
         server.setExecutor(Executors.newCachedThreadPool());
         server.start();
-        System.out.println("Mestre rodando na porta 8080");
+        System.out.println("🧠 Mestre rodando na porta 8080");
     }
 }
 
 class MestreHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         if ("POST".equals(exchange.getRequestMethod())) {
+            System.out.println("📥 Requisição recebida!");
+
             InputStream is = exchange.getRequestBody();
             String texto = new String(is.readAllBytes());
+            System.out.println("📄 Texto recebido do cliente: " + texto);
 
             final int[] letras = new int[1];
             final int[] numeros = new int[1];
@@ -32,10 +35,20 @@ class MestreHandler implements HttpHandler {
 
             t1.start();
             t2.start();
-            try { t1.join(); t2.join(); } catch (InterruptedException e) {}
+
+            try {
+                t1.join();
+                t2.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("✅ Resultado do escravo1 (letras): " + letras[0]);
+            System.out.println("✅ Resultado do escravo2 (números): " + numeros[0]);
 
             String resposta = "Letras: " + letras[0] + ", Números: " + numeros[0];
-            exchange.sendResponseHeaders(200, resposta.length());
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, resposta.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(resposta.getBytes());
             os.close();
@@ -48,9 +61,14 @@ class MestreHandler implements HttpHandler {
             con.setRequestMethod("POST");
             con.setDoOutput(true);
             con.getOutputStream().write(texto.getBytes());
+
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            return Integer.parseInt(in.readLine());
+            String linha = in.readLine();
+            in.close();
+            return Integer.parseInt(linha.trim());
         } catch (Exception e) {
+            System.err.println("⚠️ Erro ao conectar com escravo: " + url);
+            e.printStackTrace();
             return -1;
         }
     }
