@@ -44,9 +44,9 @@ class MestreHandler implements HttpHandler {
             }
 
             System.out.println("✅ Resultado do escravo1 (letras): " + letras[0]);
-            System.out.println("✅ Resultado do escravo2 (números): " + numeros[0]);
+            System.out.println("✅ Resultado do escravo2 (numeros): " + numeros[0]);
 
-            String resposta = "Letras: " + letras[0] + ", Números: " + numeros[0];
+            String resposta = "Letras: " + letras[0] + ", Numeros: " + numeros[0];
             exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
             exchange.sendResponseHeaders(200, resposta.getBytes().length);
             OutputStream os = exchange.getResponseBody();
