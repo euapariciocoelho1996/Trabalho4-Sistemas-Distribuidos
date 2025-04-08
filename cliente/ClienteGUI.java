@@ -32,7 +32,7 @@ public class ClienteGUI {
         enviar.setFont(new Font("Segoe UI", Font.BOLD, 14));
         enviar.setPreferredSize(new Dimension(250, 40));
 
-        JLabel titulo = new JLabel("Trabalho 4 - Sistemas Distribuídos");
+        JLabel titulo = new JLabel("Trabalho 4 - Sistemas Distribuidos");
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titulo.setHorizontalAlignment(SwingConstants.CENTER);
 
