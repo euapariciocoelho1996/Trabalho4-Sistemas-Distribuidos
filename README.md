@@ -95,5 +95,7 @@ O mestre espera as duas respostas e combina o resultado para retornar ao cliente
 
 ## Contribuidores
 Luis Eduardo
+
 Francisco Aparício
+
 Victor Macêdo
