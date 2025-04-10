@@ -12,15 +12,21 @@ public class EscravoLetras {
     }
 
     static class LetraHandler implements HttpHandler {
-        public void handle(HttpExchange exchange) throws IOException {
-            InputStream is = exchange.getRequestBody();
-            String texto = new String(is.readAllBytes());
-            long count = texto.chars().filter(Character::isLetter).count();
-            String response = String.valueOf(count);
-            exchange.sendResponseHeaders(200, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+    public void handle(HttpExchange exchange) throws IOException {
+        if ("HEAD".equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(200, -1); // Sem corpo
+            return;
         }
+
+        InputStream is = exchange.getRequestBody();
+        String texto = new String(is.readAllBytes());
+        long count = texto.chars().filter(Character::isLetter).count();
+        String response = String.valueOf(count);
+        exchange.sendResponseHeaders(200, response.length());
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
     }
+}
+
 }
