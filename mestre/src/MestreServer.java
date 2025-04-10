@@ -1,6 +1,7 @@
 import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 public class MestreServer {
@@ -19,18 +20,30 @@ class MestreHandler implements HttpHandler {
             System.out.println("📥 Requisição recebida!");
 
             InputStream is = exchange.getRequestBody();
-            String texto = new String(is.readAllBytes());
+            String texto = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             System.out.println("📄 Texto recebido do cliente: " + texto);
 
             final int[] letras = new int[1];
             final int[] numeros = new int[1];
 
             Thread t1 = new Thread(() -> {
-                letras[0] = postToEscravo("http://escravo1:8081/letras", texto);
+                String url = "http://escravo1:8081/letras";
+                if (escravoDisponivel(url)) {
+                    letras[0] = postToEscravo(url, texto);
+                } else {
+                    System.out.println("❌ Escravo 1 (letras) indisponível.");
+                    letras[0] = -1;
+                }
             });
 
             Thread t2 = new Thread(() -> {
-                numeros[0] = postToEscravo("http://escravo2:8082/numeros", texto);
+                String url = "http://escravo2:8082/numeros";
+                if (escravoDisponivel(url)) {
+                    numeros[0] = postToEscravo(url, texto);
+                } else {
+                    System.out.println("❌ Escravo 2 (números) indisponível.");
+                    numeros[0] = -1;
+                }
             });
 
             t1.start();
@@ -44,13 +57,28 @@ class MestreHandler implements HttpHandler {
             }
 
             System.out.println("✅ Resultado do escravo1 (letras): " + letras[0]);
-            System.out.println("✅ Resultado do escravo2 (numeros): " + numeros[0]);
+            System.out.println("✅ Resultado do escravo2 (números): " + numeros[0]);
 
-            String resposta = "Letras: " + letras[0] + ", Numeros: " + numeros[0];
+            StringBuilder resposta = new StringBuilder();
+            if (letras[0] >= 0) {
+                resposta.append("Letras: ").append(letras[0]);
+            } else {
+                resposta.append("Erro ao processar letras");
+            }
+
+            resposta.append(", ");
+
+            if (numeros[0] >= 0) {
+                resposta.append("Números: ").append(numeros[0]);
+            } else {
+                resposta.append("Erro ao processar números");
+            }
+
+            byte[] respostaBytes = resposta.toString().getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-            exchange.sendResponseHeaders(200, resposta.getBytes().length);
+            exchange.sendResponseHeaders(200, respostaBytes.length);
             OutputStream os = exchange.getResponseBody();
-            os.write(resposta.getBytes());
+            os.write(respostaBytes);
             os.close();
         }
     }
@@ -60,9 +88,9 @@ class MestreHandler implements HttpHandler {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
             con.setRequestMethod("POST");
             con.setDoOutput(true);
-            con.getOutputStream().write(texto.getBytes());
+            con.getOutputStream().write(texto.getBytes(StandardCharsets.UTF_8));
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
             String linha = in.readLine();
             in.close();
             return Integer.parseInt(linha.trim());
@@ -70,6 +98,19 @@ class MestreHandler implements HttpHandler {
             System.err.println("⚠️ Erro ao conectar com escravo: " + url);
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    private boolean escravoDisponivel(String url) {
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+            con.setRequestMethod("HEAD");
+            con.setConnectTimeout(1000);
+            con.connect();
+            int responseCode = con.getResponseCode();
+            return responseCode >= 200 && responseCode < 400;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
