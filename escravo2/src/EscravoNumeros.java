@@ -6,6 +6,7 @@ public class EscravoNumeros {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8082), 0);
         server.createContext("/numeros", new NumeroHandler());
+        server.createContext("/status", new StatusHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("Escravo 2 (números) rodando");
@@ -13,14 +14,21 @@ public class EscravoNumeros {
 
     static class NumeroHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
-            InputStream is = exchange.getRequestBody();
-            String texto = new String(is.readAllBytes());
+            String texto = new String(exchange.getRequestBody().readAllBytes());
             long count = texto.chars().filter(Character::isDigit).count();
             String response = String.valueOf(count);
             exchange.sendResponseHeaders(200, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.close();
+        }
+    }
+
+    static class StatusHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "OK";
+            exchange.sendResponseHeaders(200, response.length());
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.close();
         }
     }
 }
