@@ -92,6 +92,9 @@ O mestre espera as duas respostas e combina o resultado para retornar ao cliente
 
 ![Tela Resultado](https://github.com/euapariciocoelho1996/Trabalho4-Sistemas-Distribuidos/blob/main/Telas/tela%20resultado.jpeg?raw=true)
 
+### Exemplo de resposta quando escravo está offline
+
+![Resposta com escravo offline](https://raw.githubusercontent.com/euapariciocoelho1996/Trabalho4-Sistemas-Distribuidos/main/Telas/terminal-resposta-escravo-off.png)
 
 ## Contribuidores
 Luis Eduardo
