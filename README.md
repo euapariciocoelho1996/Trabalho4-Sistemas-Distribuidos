@@ -96,6 +96,11 @@ O mestre espera as duas respostas e combina o resultado para retornar ao cliente
 
 ![Resposta com escravo offline](https://raw.githubusercontent.com/euapariciocoelho1996/Trabalho4-Sistemas-Distribuidos/main/Telas/terminal-resposta-escravo-off.png)
 
+### Mensagem de erro exibida no cliente quando escravo está offline
+
+![Erro no cliente](https://raw.githubusercontent.com/euapariciocoelho1996/Trabalho4-Sistemas-Distribuidos/main/Telas/msg-erro-escravo-off-client.jpeg)
+
+
 ## Contribuidores
 Luis Eduardo
 
