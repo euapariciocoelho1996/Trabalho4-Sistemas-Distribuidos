@@ -18,23 +18,24 @@ class MestreHandler implements HttpHandler {
         if ("POST".equals(exchange.getRequestMethod())) {
             System.out.println("📥 Requisição recebida!");
 
-            String texto = new String(exchange.getRequestBody().readAllBytes());
+            InputStream is = exchange.getRequestBody();
+            String texto = new String(is.readAllBytes());
+            System.out.println("📄 Texto recebido do cliente: " + texto);
+
             final int[] letras = new int[1];
             final int[] numeros = new int[1];
 
-            if (!isEscravoDisponivel("http://escravo1:8081/status") || !isEscravoDisponivel("http://escravo2:8082/status")) {
-                String error = "❌ Um dos escravos está indisponível.";
-                exchange.sendResponseHeaders(503, error.length());
-                exchange.getResponseBody().write(error.getBytes());
-                exchange.close();
-                return;
-            }
+            Thread t1 = new Thread(() -> {
+                letras[0] = postToEscravo("http://escravo1:8081/letras", texto);
+            });
 
-            Thread t1 = new Thread(() -> letras[0] = postToEscravo("http://escravo1:8081/letras", texto));
-            Thread t2 = new Thread(() -> numeros[0] = postToEscravo("http://escravo2:8082/numeros", texto));
+            Thread t2 = new Thread(() -> {
+                numeros[0] = postToEscravo("http://escravo2:8082/numeros", texto);
+            });
 
             t1.start();
             t2.start();
+
             try {
                 t1.join();
                 t2.join();
@@ -42,23 +43,15 @@ class MestreHandler implements HttpHandler {
                 e.printStackTrace();
             }
 
-            String resposta = "Letras: " + letras[0] + ", Números: " + numeros[0];
-            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-            exchange.sendResponseHeaders(200, resposta.length());
-            exchange.getResponseBody().write(resposta.getBytes());
-            exchange.close();
-        }
-    }
+            System.out.println("✅ Resultado do escravo1 (letras): " + letras[0]);
+            System.out.println("✅ Resultado do escravo2 (numeros): " + numeros[0]);
 
-    private boolean isEscravoDisponivel(String url) {
-        try {
-            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-            con.setRequestMethod("GET");
-            con.setConnectTimeout(2000);
-            con.setReadTimeout(2000);
-            return con.getResponseCode() == 200;
-        } catch (IOException e) {
-            return false;
+            String resposta = "Letras: " + letras[0] + ", Numeros: " + numeros[0];
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, resposta.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(resposta.getBytes());
+            os.close();
         }
     }
 
@@ -70,9 +63,12 @@ class MestreHandler implements HttpHandler {
             con.getOutputStream().write(texto.getBytes());
 
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            return Integer.parseInt(in.readLine().trim());
+            String linha = in.readLine();
+            in.close();
+            return Integer.parseInt(linha.trim());
         } catch (Exception e) {
-            System.err.println("Erro ao conectar com " + url);
+            System.err.println("⚠️ Erro ao conectar com escravo: " + url);
+            e.printStackTrace();
             return -1;
         }
     }
